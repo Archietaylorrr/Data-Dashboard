@@ -1,0 +1,21 @@
+{
+  "name": "water-chemistry-dashboard",
+  "version": "1.0.0",
+  "description": "Local desktop dashboard for water chemistry data analysis",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "install-and-start": "npm install && npm start"
+  },
+  "keywords": ["electron", "dashboard", "water-chemistry"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^27.0.0"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5",
+    "chart.js": "^4.4.0"
+  }
+}
+

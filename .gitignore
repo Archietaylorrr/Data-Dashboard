@@ -1,0 +1,31 @@
+# Node modules
+node_modules/
+
+# Electron build output
+dist/
+build/
+out/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary Excel files
+~$*
+
+# Backup files
+MainData_backup_*.xlsx
+
+# Generated reports
+ICP_OES_Matched_Results.xlsx
+Calibration_Report_*.xlsx
+

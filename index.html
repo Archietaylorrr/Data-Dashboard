@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Chemistry Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h2>Water Chemistry Dashboard</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" data-page="dashboard">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Dashboard</span>
+                </li>
+                <li class="nav-item" data-page="data">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">All Data</span>
+                </li>
+                <li class="nav-item" data-page="icpoes">
+                    <span class="nav-icon">🔬</span>
+                    <span class="nav-text">ICP-OES Analysis</span>
+                </li>
+                <li class="nav-item" data-page="import">
+                    <span class="nav-icon">📥</span>
+                    <span class="nav-text">Import Data</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <p class="data-status">Loading data...</p>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <header class="page-header">
+                    <h1>Analytics Dashboard</h1>
+                    <p class="subtitle">Water Chemistry Sample Overview</p>
+                </header>
+
+                <!-- Summary Cards -->
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">🧪</div>
+                        <div class="card-content">
+                            <p class="card-label">Total Samples</p>
+                            <h2 class="card-value" id="total-samples">-</h2>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">📍</div>
+                        <div class="card-content">
+                            <p class="card-label">Unique Locations</p>
+                            <h2 class="card-value" id="unique-locations">-</h2>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🗺️</div>
+                        <div class="card-content">
+                            <p class="card-label">Traverses</p>
+                            <h2 class="card-value" id="unique-traverses">-</h2>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">📅</div>
+                        <div class="card-content">
+                            <p class="card-label">Date Range</p>
+                            <h2 class="card-value" id="date-range">-</h2>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <div class="chart-container">
+                        <h3>Sample Distribution by Type</h3>
+                        <canvas id="sampleTypeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>pH Distribution</h3>
+                        <canvas id="phChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Statistics Tables -->
+                <div class="stats-section">
+                    <div class="stats-table-container">
+                        <h3>Chemical Parameters Summary</h3>
+                        <div id="chemical-stats" class="stats-table"></div>
+                    </div>
+                    <div class="stats-table-container">
+                        <h3>Isotope Data Summary</h3>
+                        <div id="isotope-stats" class="stats-table"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Plotting Tool -->
+                <div class="plotting-section">
+                    <div class="plot-container-card">
+                        <h3>📈 Quick Data Plotting</h3>
+                        
+                        <div class="plot-controls">
+                            <!-- Filters -->
+                            <div class="filter-group">
+                                <h4>Filters</h4>
+                                <div class="filter-grid">
+                                    <label>
+                                        <span class="filter-label">Traverse:</span>
+                                        <select id="plot-filter-traverse" class="plot-select">
+                                            <option value="">All Traverses</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span class="filter-label">Sample Type:</span>
+                                        <select id="plot-filter-type" class="plot-select">
+                                            <option value="">All Types</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span class="filter-label">Min Samples:</span>
+                                        <span id="plot-sample-count" class="sample-count">0 samples</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Axis Selection -->
+                            <div class="axis-group">
+                                <h4>Plot Variables</h4>
+                                <div class="axis-grid">
+                                    <label>
+                                        <span class="filter-label">X-Axis:</span>
+                                        <select id="plot-x-axis" class="plot-select">
+                                            <option value="">-- Select X Variable --</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span class="filter-label">Y-Axis:</span>
+                                        <select id="plot-y-axis" class="plot-select">
+                                            <option value="">-- Select Y Variable --</option>
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <span class="filter-label">Color By:</span>
+                                        <select id="plot-color-by" class="plot-select">
+                                            <option value="">None</option>
+                                            <option value="Traverse_new">Traverse</option>
+                                            <option value="Sample type">Sample Type</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button id="create-plot-btn" class="btn-primary btn-large">📈 Create Plot</button>
+                        </div>
+
+                        <!-- Plot Display -->
+                        <div id="custom-plot-container" class="custom-plot-area" style="display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h4 id="plot-title" style="margin: 0; color: #0f172a;">Plot</h4>
+                                <button class="btn-secondary btn-small" onclick="clearCustomPlot()">Clear Plot</button>
+                            </div>
+                            <canvas id="custom-plot-canvas" style="max-height: 450px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data View Page -->
+            <div id="data-page" class="page">
+                <header class="page-header">
+                    <h1>All Data</h1>
+                    <div class="toolbar">
+                        <input type="text" id="search-input" placeholder="Search data..." class="search-box">
+                        <button id="export-btn" class="btn-primary">Export CSV</button>
+                    </div>
+                </header>
+
+                <div class="table-container">
+                    <table id="data-table" class="data-table">
+                        <thead id="table-header">
+                            <!-- Headers will be inserted by JavaScript -->
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data will be inserted by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-footer">
+                    <p id="table-info">Showing 0 of 0 samples</p>
+                </div>
+            </div>
+
+            <!-- ICP-OES Analysis Page (Integrated) -->
+            <div id="icpoes-page" class="page">
+                <header class="page-header">
+                    <h1>ICP-OES Analysis & Calibration</h1>
+                    <p class="subtitle">View matched samples and perform calibrations</p>
+                </header>
+
+                <!-- Summary Stats -->
+                <div class="icpoes-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon">📁</div>
+                        <div class="summary-content">
+                            <div class="summary-label">ICP-OES Runs</div>
+                            <div class="summary-value" id="icpoes-runs-count">-</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon">🔗</div>
+                        <div class="summary-content">
+                            <div class="summary-label">Matched Samples</div>
+                            <div class="summary-value" id="icpoes-matches-count">-</div>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-icon">🧪</div>
+                        <div class="summary-content">
+                            <div class="summary-label">Available Analytes</div>
+                            <div class="summary-value" id="icpoes-analytes-count">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matched Samples by Run -->
+                <div class="calibration-section">
+                    <div class="section-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <h3 style="margin: 0;">📦 Samples by ICP-OES Run</h3>
+                                <p class="section-desc" style="margin: 5px 0 0 0;">Click any run to expand and see matched samples</p>
+                            </div>
+                            <button id="refresh-icpoes-btn" class="btn-secondary" onclick="if(window.refreshICPOESData) window.refreshICPOESData();" style="white-space: nowrap;">
+                                🔄 Refresh Data
+                            </button>
+                        </div>
+                        <div id="grouped-data-container">
+                            <!-- Grouped data will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calibration Quality Review Section -->
+                <div class="calibration-section">
+                    <div class="section-card">
+                        <h3>🔬 Calibration Quality Review</h3>
+                        <p class="section-desc">Review and improve calibrations for any run</p>
+                        
+                        <!-- Run Selection -->
+                        <div class="calib-header">
+                            <label>
+                                <span class="label-text">Select ICP-OES Run:</span>
+                                <select id="calib-run-selector" class="select-input">
+                                    <option value="">-- Select Run --</option>
+                                </select>
+                            </label>
+                            <div id="calib-loading" style="display: none; padding: 10px; color: #667eea;">
+                                Loading calibration data...
+                            </div>
+                            <div id="calib-message" class="calib-message" style="display: none;"></div>
+                        </div>
+
+                        <!-- Standards Table Preview -->
+                        <div id="standards-table-container" style="margin-top: 20px;"></div>
+
+                        <!-- Analyte Selection & Quality Overview -->
+                        <div id="analytes-overview-container" style="margin-top: 20px;"></div>
+                        <div id="analyte-buttons-container" style="margin-top: 20px;"></div>
+                    </div>
+                </div>
+
+                <!-- Calibration Results Section -->
+                <div class="calibration-section" id="calib-results-section" style="display: none;">
+                    <div class="section-card">
+                        <h3>📊 Calibration Quality Metrics</h3>
+                        
+                        <!-- Quality Metrics Cards -->
+                        <div class="quality-metrics">
+                            <div class="metric-card">
+                                <div class="metric-label">R²</div>
+                                <div class="metric-value" id="calib-r2">-</div>
+                                <div class="metric-target">Target: > 0.999</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">RMSE</div>
+                                <div class="metric-value" id="calib-rmse">-</div>
+                                <div class="metric-target">Lower is better</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Slope</div>
+                                <div class="metric-value" id="calib-slope">-</div>
+                                <div class="metric-target">Sensitivity</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Intercept</div>
+                                <div class="metric-value" id="calib-intercept">-</div>
+                                <div class="metric-target">Baseline</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Points</div>
+                                <div class="metric-value" id="calib-points">-</div>
+                                <div class="metric-target">Standards used</div>
+                            </div>
+                        </div>
+
+                        <!-- Calibration Curve -->
+                        <div class="calib-plot-container">
+                            <h4>Calibration Curve</h4>
+                            <canvas id="calibration-curve-canvas" style="height: 400px;"></canvas>
+                        </div>
+
+                        <!-- Standards Table with Quality Info -->
+                        <div id="standards-list-container" style="margin-top: 30px;"></div>
+
+                        <!-- Action Buttons -->
+                        <div class="calib-actions">
+                            <button id="export-calib-button" class="btn-primary">📥 Export Calibration Report</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Data Import Page -->
+            <div id="import-page" class="page">
+                <header class="page-header">
+                    <h1>Import New Data</h1>
+                    <p class="subtitle">Add new ICP-OES data to your master spreadsheet</p>
+                </header>
+
+                <!-- Import Workflow -->
+                <div class="import-section">
+                    <div class="section-card">
+                        <h3>📂 Step 1: Select File</h3>
+                        <p class="section-desc">Choose the new ICP-OES file to import</p>
+                        
+                        <div style="margin-top: 20px;">
+                            <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display: none;">
+                            <button class="btn-primary btn-large" onclick="document.getElementById('import-file-input').click()">
+                                📂 Select Excel File
+                            </button>
+                            <p id="import-file-name" style="margin-top: 12px; color: #64748b; font-size: 14px;"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample Matching -->
+                <div class="import-section" id="import-step-2" style="display: none;">
+                    <div class="section-card">
+                        <h3>🔗 Step 2: Match Samples</h3>
+                        <p class="section-desc">Review and confirm sample ID matches</p>
+                        
+                        <div id="import-sample-matches"></div>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button class="btn-secondary" onclick="cancelImport()">Cancel</button>
+                            <button class="btn-primary" id="confirm-matches-btn" onclick="confirmMatches()">Confirm Matches →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column Mapping -->
+                <div class="import-section" id="import-step-3" style="display: none;">
+                    <div class="section-card">
+                        <h3>📊 Step 3: Map Columns</h3>
+                        <p class="section-desc">Match new data columns to master spreadsheet columns</p>
+                        
+                        <div id="import-column-mapping"></div>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button class="btn-secondary" onclick="backToStep(2)">← Back</button>
+                            <button class="btn-primary" id="preview-import-btn" onclick="previewImport()">Preview Import →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview & Confirm -->
+                <div class="import-section" id="import-step-4" style="display: none;">
+                    <div class="section-card">
+                        <h3>👁️ Step 4: Preview & Confirm</h3>
+                        <p class="section-desc">Review changes before applying to master spreadsheet</p>
+                        
+                        <div id="import-preview"></div>
+                        
+                        <div class="import-warning">
+                            <strong>⚠️ Important:</strong> A backup of MainData.xlsx will be created before importing.
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button class="btn-secondary" onclick="backToStep(3)">← Back</button>
+                            <button class="btn-primary btn-large" id="execute-import-btn" onclick="executeImport()">
+                                ✅ Import to Master Spreadsheet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <div class="import-section" id="import-success" style="display: none;">
+                    <div class="section-card" style="text-align: center; padding: 60px;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+                        <h2 style="color: #10b981; margin-bottom: 12px;">Import Successful!</h2>
+                        <p style="color: #64748b; margin-bottom: 30px;" id="import-success-message"></p>
+                        <button class="btn-primary" onclick="resetImport()">Import Another File</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Load Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <!-- Load application script -->
+    <script src="app.js"></script>
+    <!-- Load ICP-OES UI module -->
+    <script src="icpoes-ui.js"></script>
+    <!-- Load advanced calibration module -->
+    <script src="calibration-advanced.js"></script>
+    <!-- Load data import module -->
+    <script src="data-import.js"></script>
+</body>
+</html>
+
+
+

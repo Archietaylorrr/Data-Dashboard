@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading - Water Chemistry Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .loading-container {
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 24px;
+            font-weight: 700;
+            color: #3b82f6;
+            letter-spacing: -1px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 15px;
+            opacity: 0.7;
+            margin-bottom: 48px;
+            color: #cbd5e1;
+            font-weight: 400;
+        }
+
+        .progress-container {
+            background: #334155;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            border: 1px solid #475569;
+        }
+
+        .progress-bar-container {
+            background: #475569;
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .progress-bar {
+            background: #3b82f6;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .progress-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .progress-details {
+            font-size: 14px;
+            opacity: 0.9;
+            min-height: 40px;
+        }
+
+        .step-list {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .step-item.active {
+            opacity: 1;
+            font-weight: 600;
+        }
+
+        .step-item.complete {
+            opacity: 0.8;
+        }
+
+        .step-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(231, 76, 60, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="logo">WCD</div>
+        <h1>Water Chemistry Dashboard</h1>
+        <p class="subtitle">Initializing data and calibrations...</p>
+
+        <div class="progress-container">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="progress-text" id="progress-text">Starting...</div>
+            <div class="progress-details" id="progress-details"></div>
+
+            <div class="step-list">
+                <div class="step-item" id="step-1">
+                    <span class="step-icon">⏳</span>
+                    <span>Loading main data</span>
+                </div>
+                <div class="step-item" id="step-2">
+                    <span class="step-icon">⏳</span>
+                    <span>Scanning ICP-OES files</span>
+                </div>
+                <div class="step-item" id="step-3">
+                    <span class="step-icon">⏳</span>
+                    <span>Reading ICP-OES data</span>
+                </div>
+                <div class="step-item" id="step-4">
+                    <span class="step-icon">⏳</span>
+                    <span>Matching samples</span>
+                </div>
+                <div class="step-item" id="step-5">
+                    <span class="step-icon">⏳</span>
+                    <span>Finalizing</span>
+                </div>
+            </div>
+
+            <div id="error-container"></div>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Listen for progress updates
+        ipcRenderer.on('loading-progress', (event, data) => {
+            const { percent, message, details, step } = data;
+            
+            // Update progress bar
+            document.getElementById('progress-bar').style.width = percent + '%';
+            
+            // Update text
+            document.getElementById('progress-text').textContent = message;
+            if (details) {
+                document.getElementById('progress-details').textContent = details;
+            }
+
+            // Update step indicators
+            if (step) {
+                // Mark previous steps as complete
+                for (let i = 1; i < step; i++) {
+                    const stepEl = document.getElementById(`step-${i}`);
+                    if (stepEl) {
+                        stepEl.classList.remove('active');
+                        stepEl.classList.add('complete');
+                        stepEl.querySelector('.step-icon').textContent = '✓';
+                    }
+                }
+                
+                // Mark current step as active
+                const currentStep = document.getElementById(`step-${step}`);
+                if (currentStep) {
+                    currentStep.classList.add('active');
+                    currentStep.querySelector('.step-icon').innerHTML = '<div class="spinner"></div>';
+                }
+            }
+        });
+
+        // Listen for completion
+        ipcRenderer.on('loading-complete', () => {
+            // Mark all steps complete
+            for (let i = 1; i <= 5; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+                if (stepEl) {
+                    stepEl.classList.remove('active');
+                    stepEl.classList.add('complete');
+                    stepEl.querySelector('.step-icon').textContent = '✓';
+                }
+            }
+            
+            document.getElementById('progress-text').textContent = 'Ready!';
+            document.getElementById('progress-details').textContent = 'Opening dashboard...';
+        });
+
+        // Listen for errors
+        ipcRenderer.on('loading-error', (event, error) => {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${error}
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
+
